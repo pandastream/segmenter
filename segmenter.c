@@ -30,7 +30,7 @@
   unsigned int segment_duration;
   char *output_prefix;
   FILE *index_fp;
-}; 
+};
 
 void display_usage()
 {
@@ -55,7 +55,7 @@ void
 segment_context_free(struct segment_context * ctx){
 }
 
-int 
+int
 index_file_write_headers(struct segment_context * ctx){
 }
 
@@ -93,7 +93,7 @@ index_file_open(struct segment_context * ctx){
 }
 
 
-void 
+void
 index_file_close(struct segment_context * ctx){
   char *write_buf;
 
@@ -117,7 +117,7 @@ index_file_close(struct segment_context * ctx){
 }
 
 
-void 
+void
 index_file_write_segment(struct segment_context * ctx, const unsigned int segment_duration,  char *filename){
   char *write_buf;
 
@@ -204,7 +204,7 @@ void
 create_segments(struct segment_context * ctx) {
  long max_tsfiles = 0;
  char *max_tsfiles_check;
- double prev_segment_time = 0;
+ double prev_segment_time = -1;
  unsigned int output_index = 1;
 
  AVInputFormat *ifmt;
@@ -337,6 +337,14 @@ do {
     break;
   }
 
+  if (prev_segment_time < 0) {
+    if (packet.stream_index == video_index) {
+      prev_segment_time = packet.pts * av_q2d(video_st->time_base);
+    } else {
+      prev_segment_time = packet.pts * av_q2d(audio_st->time_base);
+    }
+  }
+
   if (av_dup_packet(&packet) < 0) {
     fprintf(stderr, "Could not duplicate packet");
     av_free_packet(&packet);
@@ -370,7 +378,7 @@ do {
     prev_segment_time = segment_time;
   }
 
-  ret = av_interleaved_write_frame(oc, &packet);
+  ret = av_write_frame(oc, &packet);
 
   if (ret < 0) {
     fprintf(stderr, "Warning: Could not write frame of stream\n");
@@ -407,7 +415,7 @@ if(write_index >= 0)
   index_file_close(ctx);
 }
 
-void 
+void
 segment_context_default(struct segment_context *ctx) {
   ctx->base_url = "";
   ctx->index_file = NULL;
@@ -492,4 +500,3 @@ main (int argc, char **argv)
   segment_context_free(&ctx);
   return 0;
 }
-
