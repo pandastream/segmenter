@@ -176,7 +176,7 @@ add_output_stream(AVFormatContext *output_format_context, AVStream *input_stream
     output_codec_context->sample_rate = input_codec_context->sample_rate;
     output_codec_context->channels = input_codec_context->channels;
     output_codec_context->frame_size = input_codec_context->frame_size;
-    if ((input_codec_context->block_align == 1 && input_codec_context->codec_id == CODEC_ID_MP3) || input_codec_context->codec_id == CODEC_ID_AC3) {
+    if ((input_codec_context->block_align == 1 && input_codec_context->codec_id == AV_CODEC_ID_MP3) || input_codec_context->codec_id == AV_CODEC_ID_AC3) {
       output_codec_context->block_align = 0;
     }
     else {
@@ -190,7 +190,7 @@ add_output_stream(AVFormatContext *output_format_context, AVStream *input_stream
     output_codec_context->has_b_frames = input_codec_context->has_b_frames;
 
     if (output_format_context->oformat->flags & AVFMT_GLOBALHEADER) {
-      output_codec_context->flags |= CODEC_FLAG_GLOBAL_HEADER;
+      output_codec_context->flags |= AV_CODEC_FLAG_GLOBAL_HEADER;
     }
     break;
     default:
