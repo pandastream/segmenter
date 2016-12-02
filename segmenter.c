@@ -30,6 +30,8 @@
   unsigned int segment_duration;
   char *output_prefix;
   FILE *index_fp;
+  char *separator;
+  int start_from;
 };
 
 void display_usage()
@@ -43,6 +45,8 @@ void display_usage()
   printf("-o\t Prefix for the TS segments, will be appended\n");
   printf("-p\t Index Precision (1.ts, 01.ts, 001.ts, default: 1)\n");
   printf("-I\t M3U8 index filename\n");
+  printf("-s\t String separating file name prefix and index number (default: \"-\")\n");
+  printf("-f\t Index number that segmenter should start from (default: 1)\n");
   printf("-b\t Base url for web address of segments, e.g. http://example.org/video/\n");
   printf("-h\t This help\n");
   printf("\n");
@@ -205,7 +209,7 @@ create_segments(struct segment_context * ctx) {
  long max_tsfiles = 0;
  char *max_tsfiles_check;
  double prev_segment_time = -1;
- unsigned int output_index = 1;
+ unsigned int output_index = ctx->start_from;
 
  AVInputFormat *ifmt;
  AVOutputFormat *ofmt;
@@ -312,7 +316,8 @@ if (!output_format) {
  fprintf(stderr, "Could not allocate space for output format\n");
  exit(1);
 }
-sprintf(output_format, "%%s-%%0%uu.ts", ctx->precision);
+
+sprintf(output_format, "%%s%s%%0%uu.ts", ctx->separator, ctx->precision);
 
 sprintf(output_filename, output_format, ctx->output_prefix, output_index++);
 
@@ -423,6 +428,8 @@ segment_context_default(struct segment_context *ctx) {
   ctx->precision = 1;
   ctx->segment_duration = 10;
   ctx->output_prefix = NULL;
+  ctx->separator = "-";
+  ctx->start_from = 1;
 }
 
 int
@@ -436,7 +443,7 @@ main (int argc, char **argv)
   int index;
   int c;
 
-  while ((c = getopt (argc, argv, "b:t:I:o:p:i:h")) != -1)
+  while ((c = getopt (argc, argv, "b:t:I:o:p:i:s:f:h")) != -1)
     switch (c)
     {
       case 'b':
@@ -453,6 +460,12 @@ main (int argc, char **argv)
       break;
       case 'I':
       ctx.index_file = optarg;
+      break;
+      case 's':
+      ctx.separator = optarg;
+      break;
+      case 'f':
+      ctx.start_from = atoi(optarg);
       break;
       case 'h':
       display_usage();
